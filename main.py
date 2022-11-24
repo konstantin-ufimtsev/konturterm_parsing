@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import csv
 import lxml
 
+#парсер
 
 def get_html(url):
     r = requests.get(url)
