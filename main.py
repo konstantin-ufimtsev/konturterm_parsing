@@ -41,8 +41,10 @@ def get_page_data(html):
         write_csv(data)
 
 def main():
-    url = 'https://www.konturterm.ru/catalog/otoplenie/radiatory/'
-    get_page_data(get_html(url))
+    for i in range(1, 9):
+        url = f'https://www.konturterm.ru/catalog/otoplenie/radiatory/?PAGEN_1={i}'
+        print(f'Обрабатывю страницу {i}')
+        get_page_data(get_html(url))
 
 
 if __name__ == '__main__':
