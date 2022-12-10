@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 from _datetime import datetime
-import lxml
+import re
 
 #функция вывода времени и даты
 def get_current_datetime():
@@ -25,7 +25,62 @@ def write_csv(data):
                          data['name'],
                          data['price'],
                          data['stock'],
-                         data['url']))
+                         data['url'],
+                         data['item_type'],
+                         data['radiator_type'],
+                         data['power']))
+
+def get_item_properties(item_name):
+
+    if 'радиатор' and 'стальной' and 'панельный' in item_name.lower():
+        item_type = 'радиатор'
+        radiatro_type = 'стальной панельный'
+        power = int(re.findall(r'\d+', item_name)[-1])
+    else:
+        if 'радиатор' and 'schulter' in item_name.lower():
+            item_type = 'радиатор'
+            radiatro_type = 'стальной панельный'
+            power = int(re.findall(r'\d+', item_name)[-1])
+        else:
+
+            if 'радиатор' and 'алюминиевый ' in item_name.lower():
+                item_type = 'радиатор'
+                radiatro_type = 'алюминиевый'
+                power = int(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1])
+            else:
+                if 'радиатор' and 'биметал' in item_name.lower():
+                    item_type = 'радиатор'
+                    radiatro_type = 'биметаллический'
+                    power = int(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1])
+                else:
+                    if 'конвектор' in item_name.lower():
+                        item_type = 'конвектор'
+                        radiatro_type = 'внутрипольный'
+                        power = int(re.findall(r'\d+', item_name)[-1])
+                    else:
+                        if 'радиатор' and 'чугун' in item_name.lower():
+                            item_type = 'радиатор'
+                            radiatro_type = 'чугунный'
+                            power = int(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1])
+                        else:
+                            if 'радиатор' in item_name.lower() and ('конвектор' not in item_name.lower()) and ('стальной' not in item_name.lower()) and ('биметал' not in item_name.lower()) and ('алюмини' not in item_name.lower()) and ('чугун' not in item_name.lower()):
+                                item_type = 'радиатор'
+                                radiatro_type = 'стальной трубчатый'
+                                power = int(re.findall(r'\d+', item_name)[-1])
+                            else:
+                                item_type = 'комплектующие'
+                                radiatro_type = '-'
+                                power = '-'
+
+    data = {
+            'item_type': item_type, #радиатор, комплектующие
+            'radiator_type': radiatro_type, ##конвектор, биметаллчиеский,алюминиевый , стальной панельный, стальбной трубчатый, чугунный,
+            'power': power, #тепловая мощность
+        }
+
+    return data
+
+
 
 def get_page_data(html):
     
@@ -42,23 +97,35 @@ def get_page_data(html):
         soap_item = BeautifulSoup(get_html(item_url), 'lxml')
         article = soap_item.find('span', class_='article__value').text.strip()
 
+
+
         data = {
+
             'current_time': get_current_datetime(),
             'article': article,
             'name': item_name,
             'price': item_price,
             'stock': item_stock,
-            'url': item_url
+            'url': item_url,
         }
+        data.update(get_item_properties(item_name))
         print(data)
         write_csv(data)
 
 def main():
-    url = 'https://www.konturterm.ru/catalog/otoplenie/radiatory/?SHOWALL_1=1'
-    try:
-        get_page_data(get_html(url))
-    except:
-        pass
+    url_list = ['https://www.konturterm.ru/catalog/otoplenie/radiatory/bimetallicheskie/filter/in_stock-is-y/apply/?SHOWALL_1=1',
+                'https://www.konturterm.ru/catalog/otoplenie/radiatory/panelnye/filter/in_stock-is-y/apply/?SHOWALL_1=1,',
+                'https://www.konturterm.ru/catalog/otoplenie/radiatory/stalnye_trubchatye/filter/in_stock-is-y/apply/?SHOWALL_1=1',
+                'https://www.konturterm.ru/catalog/otoplenie/radiatory/alyuminievye/filter/in_stock-is-y/apply/?SHOWALL_1=1',
+                'https://www.konturterm.ru/catalog/otoplenie/radiatory/chugunnye/filter/in_stock-is-y/apply/?SHOWALL_1=1',
+                'https://www.konturterm.ru/catalog/otoplenie/radiatory/vnutripolnye_konvektory/filter/in_stock-is-y/apply/?SHOWALL_1=1']
+
+
+    for url in url_list:
+        try:
+            get_page_data(get_html(url))
+        except:
+            print('ошибка получения данных со страницы')
 
 if __name__ == '__main__':
     main()
