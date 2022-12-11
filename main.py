@@ -6,7 +6,7 @@ import re
 
 #функция вывода времени и даты
 def get_current_datetime():
-    time = datetime.now().strftime('%H.%M-%d.%m.%Y')
+    time = datetime.now().strftime('%d.%m.%Y')
     return time
 
 def get_html(url):
@@ -20,7 +20,8 @@ def get_html(url):
 def write_csv(data):
     with open('catalog_kontur.csv', 'a', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow((data['current_time'],
+        writer.writerow((data['shop_name'],
+                         data['current_time'],
                          data['article'],
                          data['name'],
                          data['price'],
@@ -34,47 +35,47 @@ def get_item_properties(item_name):
 
     if 'радиатор' and 'стальной' and 'панельный' in item_name.lower():
         item_type = 'радиатор'
-        radiatro_type = 'стальной панельный'
+        radiator_type = 'стальной панельный'
         power = int(re.findall(r'\d+', item_name)[-1])
     else:
         if 'радиатор' and 'schulter' in item_name.lower():
             item_type = 'радиатор'
-            radiatro_type = 'стальной панельный'
+            radiator_type = 'стальной панельный'
             power = int(re.findall(r'\d+', item_name)[-1])
         else:
 
             if 'радиатор' and 'алюминиевый ' in item_name.lower():
                 item_type = 'радиатор'
-                radiatro_type = 'алюминиевый'
+                radiator_type = 'алюминиевый'
                 power = int(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1])
             else:
                 if 'радиатор' and 'биметал' in item_name.lower():
                     item_type = 'радиатор'
-                    radiatro_type = 'биметаллический'
+                    radiator_type = 'биметаллический'
                     power = int(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1])
                 else:
                     if 'конвектор' in item_name.lower():
                         item_type = 'конвектор'
-                        radiatro_type = 'внутрипольный'
+                        radiator_type = 'внутрипольный'
                         power = int(re.findall(r'\d+', item_name)[-1])
                     else:
                         if 'радиатор' and 'чугун' in item_name.lower():
                             item_type = 'радиатор'
-                            radiatro_type = 'чугунный'
+                            radiator_type = 'чугунный'
                             power = int(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1])
                         else:
                             if 'радиатор' in item_name.lower() and ('конвектор' not in item_name.lower()) and ('стальной' not in item_name.lower()) and ('биметал' not in item_name.lower()) and ('алюмини' not in item_name.lower()) and ('чугун' not in item_name.lower()):
                                 item_type = 'радиатор'
-                                radiatro_type = 'стальной трубчатый'
+                                radiator_type = 'стальной трубчатый'
                                 power = int(re.findall(r'\d+', item_name)[-1])
                             else:
                                 item_type = 'комплектующие'
-                                radiatro_type = '-'
+                                radiator_type = '-'
                                 power = '-'
 
     data = {
             'item_type': item_type, #радиатор, комплектующие
-            'radiator_type': radiatro_type, ##конвектор, биметаллчиеский,алюминиевый , стальной панельный, стальбной трубчатый, чугунный,
+            'radiator_type': radiator_type, ##конвектор, биметаллчиеский,алюминиевый , стальной панельный, стальбной трубчатый, чугунный,
             'power': power, #тепловая мощность
         }
 
@@ -100,7 +101,7 @@ def get_page_data(html):
 
 
         data = {
-
+            'shop_name' : 'www.konturterm.ru',
             'current_time': get_current_datetime(),
             'article': article,
             'name': item_name,
@@ -109,8 +110,12 @@ def get_page_data(html):
             'url': item_url,
         }
         data.update(get_item_properties(item_name))
-        print(data)
-        write_csv(data)
+
+        if data['item_type'] == 'комплектующие':
+            pass
+        else:
+            print(data)
+            write_csv(data)
 
 def main():
     url_list = ['https://www.konturterm.ru/catalog/otoplenie/radiatory/bimetallicheskie/filter/in_stock-is-y/apply/?SHOWALL_1=1',
