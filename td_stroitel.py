@@ -52,15 +52,16 @@ def get_radiator_urls(url: str) -> list:
     with webdriver.Chrome() as browser:
         browser.get(url)
         browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(3)
+        time.sleep(5)
         # получаем url каждого радиатора
 
         radiator_urls = []
         items = browser.find_elements(By.XPATH, '//*[@id="pagination_contents"]/*/*/div/form/*/a')
         for item in items:
             radiator_urls.append(item.get_attribute('href'))
-            print(radiator_urls)
         return list(set(radiator_urls)) #возварщает список урлов каждого радиатора
+
+
 
 
 #получает на вход урл с радиатором и возвращает html код страницы text или ошибку
@@ -80,35 +81,13 @@ def get_html(url: list):
 def get_page_data(html: list):
     for rad_html in html:
         soap = BeautifulSoup(rad_html, 'lxml')
-        try:
-            item_name = soap.find('h1', class_='ty-product-block-title').text
-        except Exception as ex:
-            print('ex')
-        try:
-            item_article = soap.find('div', class_='ty-product-block__sku').text.split()[1].strip()
-        except Exception as ex:
-            print('ex')
-        try:
-            item_price = float(''.join(soap.find('span', class_='ty-price').text.split()[0:-1]))
-        except Exception as ex:
-            print('ex')
-        try:
-            item_stock = sum([int(i.text) for i in soap.find_all('span', class_='ty-wi-warehouse__value')])
-        except Exception as ex:
-            print('ex')
-        try:
-            item_type = 'радиатор'
-        except Exception as ex:
-            print('ex')
-        try:
-            item_url = soap.find('link', rel='canonical').get('href')
-        except Exception as ex:
-            print('ex')
-        try:
-            power = int(re.findall(r'\d+', item_name)[-1])
-            print(power)
-        except Exception as ex:
-            print('ex')
+        item_name = soap.find('h1', class_='ty-product-block-title').text
+        item_article = soap.find('div', class_='ty-product-block__sku').text.split()[1].strip()
+        item_price = float(''.join(soap.find('span', class_='ty-price').text.split()[0:-1]))
+        item_stock = sum([int(i.text) for i in soap.find_all('span', class_='ty-wi-warehouse__value')])
+        item_type = 'радиатор'
+        item_url = soap.find('link', rel='canonical').get('href')
+        power = int(re.findall(r'\d+', item_name)[-1])
         data = {
             'shop_name': 'https://tdstroitel.ru',
             'current_time': get_current_datetime(),
