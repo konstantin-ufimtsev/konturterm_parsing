@@ -56,7 +56,9 @@ def get_radiator_type(r_name):
     return data
 
 def get_page_data(url_list):
-    with webdriver.Chrome() as browser:
+    options_chrome = webdriver.ChromeOptions()
+    options_chrome.add_argument('--headless')
+    with webdriver.Chrome(options=options_chrome) as browser:
         for url in url_list:
             browser.get(url)
             browser.find_element(By.ID, 'show-city-tooltip').click()
@@ -71,19 +73,29 @@ def get_page_data(url_list):
             item_article = browser.find_element(By.CLASS_NAME, 'product-head_right').text.split()[1]
             item_name = browser.find_element(By.TAG_NAME, 'h1').text
             item_url = url
-            item_price = browser.find_element(By.CLASS_NAME, 'totalJsPrice').text
+            try:
+                item_price = browser.find_element(By.CLASS_NAME, 'totalJsPrice').text
+                item_price = round(float(item_price))
+            except:
+                item_price = 0
             if get_radiator_type(item_name)['radiator_type'] == 'алюминиевый' or get_radiator_type(item_name)['radiator_type'] == 'биметаллический':
-                power = browser.find_elements(By.CLASS_NAME, 'description-more_table-cell')[13].text
+                try:
+                    power = round(float(browser.find_elements(By.CLASS_NAME, 'description-more_table-cell')[13].text))
+                except:
+                    power = 0
             else:
-                power = browser.find_elements(By.CLASS_NAME, 'description-more_table-cell')[9].text
+                try:
+                    power = round(float(browser.find_elements(By.CLASS_NAME, 'description-more_table-cell')[9].text))
+                except:
+                    power = 0
             stock_list = browser.find_elements(By.CLASS_NAME, 'stock-list_item.green')[1:]
             #остаток
             item_stock = 0
             for i in stock_list:
                 try:
-                    item_stock += int(i.text.split()[1]) #суммируем количество по магазинам
+                    item_stock += round(float(i.text.split()[1])) #суммируем количество по магазинам
                 except:
-                    pass
+                    item_stock = 0
             data = {
                 'shop_name': 'https://baucenter.ru',
                 'current_time': get_current_time(),
@@ -100,7 +112,9 @@ def get_page_data(url_list):
             write_csv(data)
 
 def get_radiators_url(url):
-    with webdriver.Chrome() as browser:
+    options_chrome = webdriver.ChromeOptions()
+    options_chrome.add_argument('--headless')
+    with webdriver.Chrome(options=options_chrome) as browser:
         browser.get(url)
         browser.find_element(By.ID, 'show-city-tooltip').click()
         time.sleep(3)
@@ -115,6 +129,7 @@ def get_radiators_url(url):
             items = browser.find_elements(By.CLASS_NAME, 'catalog_item_main-block')
             for item in items:
                 url_list.append(item.get_attribute('href'))
+                print(item.get_attribute('href'))
             time.sleep(1)
 
             # проверка окончания пагинации (проверка равенства двух чисел "Показаны результаты  по 157 из 157"
@@ -128,11 +143,11 @@ def get_radiators_url(url):
     return url_list
 
 def main():
-    start = time.perf_counter()
-    url = 'https://baucenter.ru/radiatory_otopleniya/?PAGEN_1=14&set_filter=y&arrFilter_5279_2616430844=Y&arrFilter_5279_3516652989=Y&arrFilter_5279_1038747965=Y&arrFilter_5279_3134833003=Y'
+
+    url = 'https://baucenter.ru/radiatory_otopleniya/?PAGEN_1=1&set_filter=y&arrFilter_5279_2616430844=Y&arrFilter_5279_3516652989=Y&arrFilter_5279_1038747965=Y&arrFilter_5279_3134833003=Y'
     get_page_data(get_radiators_url(url))
-    end = time.perf_counter()
-    print('Время выполнения:', end - start)
+
+
 if __name__ == '__main__':
 
     main()

@@ -8,6 +8,26 @@ from bs4 import BeautifulSoup
 import re
 
 
+
+
+def write_csv(data):
+    try:
+        with open('catalog_tdstroitel.csv', 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow((data['shop_name'],
+                             data['current_time'],
+                             data['article'],
+                             data['name'],
+                             data['price'],
+                             data['stock'],
+                             data['url'],
+                             data['item_type'], #радиатор
+                             data['radiator_type'], #стальной, биметалл, адюминий, чугун
+                             data['power']))
+    except Exception as ex:
+        print(ex)
+
+
 def get_current_datetime():
     time = datetime.now().strftime('%d.%m.%Y')
     return time
@@ -30,26 +50,13 @@ def get_radiator_type(r_name: str) -> str:
 
     return r_type
 
-def write_csv(data):
-    try:
-        with open('catalog_tdstroitel.csv', 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow((data['shop_name'],
-                             data['current_time'],
-                             data['article'],
-                             data['name'],
-                             data['price'],
-                             data['stock'],
-                             data['url'],
-                             data['item_type'], #радиатор
-                             data['radiator_type'], #стальной, биметалл, адюминий, чугун
-                             data['power']))
-    except Exception as ex:
-        print(ex)
 
 #получает ссылку на страницу с нужным типом радиаторов и возвращает список радиаторов с этой страницы
 def get_radiator_urls(url: str) -> list:
-    with webdriver.Chrome() as browser:
+    options_chrome = webdriver.ChromeOptions()
+    options_chrome.add_argument('--headless')
+    with webdriver.Chrome(options=options_chrome) as browser:
+
         browser.get(url)
         browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(5)
@@ -58,6 +65,7 @@ def get_radiator_urls(url: str) -> list:
         radiator_urls = []
         items = browser.find_elements(By.XPATH, '//*[@id="pagination_contents"]/*/*/div/form/*/a')
         for item in items:
+            print(item.get_attribute('href'))
             radiator_urls.append(item.get_attribute('href'))
         return list(set(radiator_urls)) #возварщает список урлов каждого радиатора
 
@@ -83,11 +91,20 @@ def get_page_data(html: list):
         soap = BeautifulSoup(rad_html, 'lxml')
         item_name = soap.find('h1', class_='ty-product-block-title').text
         item_article = soap.find('div', class_='ty-product-block__sku').text.split()[1].strip()
-        item_price = float(''.join(soap.find('span', class_='ty-price').text.split()[0:-1]))
-        item_stock = sum([int(i.text) for i in soap.find_all('span', class_='ty-wi-warehouse__value')])
+        try:
+            item_price = round((float(''.join(soap.find('span', class_='ty-price').text.split()[0:-1]))))
+        except:
+            item_price = 0
+        try:
+            item_stock = round(sum([int(i.text) for i in soap.find_all('span', class_='ty-wi-warehouse__value')]))
+        except:
+            item_stock = 0
         item_type = 'радиатор'
         item_url = soap.find('link', rel='canonical').get('href')
-        power = int(re.findall(r'\d+', item_name)[-1])
+        try:
+            power = round(float((re.findall(r'\d+', item_name)[-1])))
+        except:
+            power = 0
         data = {
             'shop_name': 'https://tdstroitel.ru',
             'current_time': get_current_datetime(),

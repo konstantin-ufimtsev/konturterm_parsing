@@ -75,13 +75,16 @@ def get_radiator_type(r_name):
 
 def get_radiator_urls(url):
     radiator_urls = []
-    with webdriver.Chrome() as browser:
+    option_chrome = webdriver.ChromeOptions()
+    option_chrome.add_argument('--headless')
+    with webdriver.Chrome(options=option_chrome) as browser:
         browser.get(url)
         browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(7)
         items = browser.find_elements(By.CLASS_NAME, 'dark_link.js-notice-block__title')
         for item in items:
             radiator_urls.append(item.get_attribute('href'))
+            print(item.get_attribute('href'))
     return list(set(radiator_urls))
 
 def get_page_data(html_list):
@@ -90,12 +93,17 @@ def get_page_data(html_list):
         soap = BeautifulSoup(html, 'lxml')
         item_name = soap.find('h1', id='pagetitle').text
         item_article = soap.find_all('span', class_='value')[2].text
-        item_price = int(soap.find('span', class_='price_value').text.replace(' ', ''))
-        item_stock = sum([int(i.text) for i in (soap.find_all('span', class_='value')[4:])])
-        #item_stock = soap.find('span', class_='store_view').text.strip(')').strip('(')
+        try:
+            item_price = round(float(soap.find('span', class_='price_value').text.replace(' ', '')))
+        except:
+            item_price = 0
+        try:
+            item_stock = round(sum([int(i.text) for i in (soap.find_all('span', class_='value')[4:])]))
+        except:
+            item_stock = 0
         item_url = soap.find('link', rel='alternate').get('href')
         try:
-            power = int(item_name.split('(')[1].split('Вт)')[0].strip(''))
+            power = round(float(item_name.split('(')[1].split('Вт)')[0].strip('')))
         except:
             power = 0
         data = {

@@ -36,38 +36,41 @@ def get_item_properties(item_name):
     if 'радиатор' and 'стальной' and 'панельный' in item_name.lower():
         item_type = 'радиатор'
         radiator_type = 'стальной панельный'
-        power = int(re.findall(r'\d+', item_name)[-1])
+        power = round(float((re.findall(r'\d+', item_name)[-1])))
     else:
         if 'радиатор' and 'schulter' in item_name.lower():
             item_type = 'радиатор'
             radiator_type = 'стальной панельный'
-            power = int(re.findall(r'\d+', item_name)[-1])
+            power = round(float(re.findall(r'\d+', item_name)[-1]))
         else:
 
             if 'радиатор' and 'алюминиевый ' in item_name.lower():
                 item_type = 'радиатор'
                 radiator_type = 'алюминиевый'
-                power = int(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1])
+                power = round(float(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1]))
             else:
                 if 'радиатор' and 'биметал' in item_name.lower():
                     item_type = 'радиатор'
                     radiator_type = 'биметаллический'
-                    power = int(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1])
+                    power = round(float(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1]))
                 else:
                     if 'конвектор' in item_name.lower():
                         item_type = 'конвектор'
                         radiator_type = 'внутрипольный'
-                        power = int(re.findall(r'\d+', item_name)[-1])
+                        power = round(float(re.findall(r'\d+', item_name)[-1]))
                     else:
                         if 'радиатор' and 'чугун' in item_name.lower():
                             item_type = 'радиатор'
                             radiator_type = 'чугунный'
-                            power = int(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1])
+                            power = round(float(re.findall(r'\d+', item_name)[-2]) * int(re.findall(r'\d+', item_name)[-1]))
                         else:
                             if 'радиатор' in item_name.lower() and ('конвектор' not in item_name.lower()) and ('стальной' not in item_name.lower()) and ('биметал' not in item_name.lower()) and ('алюмини' not in item_name.lower()) and ('чугун' not in item_name.lower()):
                                 item_type = 'радиатор'
                                 radiator_type = 'стальной трубчатый'
-                                power = int(re.findall(r'\d+', item_name)[-1])
+                                try:
+                                    power = round(float(re.findall(r'\d+', item_name)[-1]))
+                                except:
+                                    power = 0
                             else:
                                 item_type = 'комплектующие'
                                 radiator_type = '-'
@@ -91,9 +94,14 @@ def get_page_data(html):
     for item in items:
         item_name = item.find('div', class_='item-title').text.strip()
         item_url = 'https://www.konturterm.ru' + item.find('a').get('href')
-        item_stock = int(item.find('span', class_='value font_sxs').text.split(':')[1].strip())
-        item_price = int(item.find('span', class_='price_value').text.replace(' ', ''))
-
+        try:
+            item_stock = round(float(item.find('span', class_='value font_sxs').text.split(':')[1].strip()))
+        except:
+            item_stock = 0
+        try:
+            item_price = round(float(item.find('span', class_='price_value').text.replace(' ', '')))
+        except:
+            item_price = 0
         # проваливаемся в карточку и забираем артикул
         soap_item = BeautifulSoup(get_html(item_url), 'lxml')
         article = soap_item.find('span', class_='article__value').text.strip()
