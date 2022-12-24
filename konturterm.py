@@ -5,6 +5,9 @@ from _datetime import datetime
 import re
 
 #функция вывода времени и даты
+import write_database
+
+
 def get_current_datetime():
     time = datetime.now().strftime('%d.%m.%Y')
     return time
@@ -123,7 +126,7 @@ def get_page_data(html):
             pass
         else:
             print(data)
-            write_csv(data)
+            write_database.write_postgresql(data)
 
 def main():
     url_list = ['https://www.konturterm.ru/catalog/otoplenie/radiatory/bimetallicheskie/filter/in_stock-is-y/apply/?SHOWALL_1=1',

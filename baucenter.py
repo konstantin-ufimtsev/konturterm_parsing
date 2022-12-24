@@ -4,6 +4,9 @@ from _datetime import datetime
 from selenium.webdriver.common.by import By
 import time
 
+import write_database
+from write_database import write_postgresql
+
 def write_csv(data):
     with open('catalog_baucenter.csv', 'a', newline='') as f:
         try:
@@ -109,7 +112,7 @@ def get_page_data(url_list):
             }
             data.update(get_radiator_type(item_name))
             print(data)
-            write_csv(data)
+            write_database.write_postgresql(data)
 
 def get_radiators_url(url):
     options_chrome = webdriver.ChromeOptions()
@@ -149,7 +152,6 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()
 
 

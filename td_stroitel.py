@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import re
 
-
+import write_database
 
 
 def write_csv(data):
@@ -121,7 +121,7 @@ def get_page_data(html: list):
             pass
         else:
             print(data)
-            write_csv(data)
+            write_database.write_postgresql(data)
 
 def main():
     #список ссылок на каждый тип радиатора

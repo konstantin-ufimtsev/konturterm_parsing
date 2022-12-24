@@ -7,6 +7,9 @@ from _datetime import datetime
 from selenium.webdriver.common.by import By
 import time
 
+import write_database
+
+
 def write_csv(data):
     try:
         with open('catalog_megapolys.csv', 'a', newline='') as f:
@@ -122,7 +125,7 @@ def get_page_data(html_list):
             pass
         else:
             print(data)
-            write_csv(data)
+            write_database.write_postgresql(data)
 
 def main():
     urls = ['https://www.megapolys.com/catalog/otoplenie_vodosnabzhenie_i_ventilyatsiya/otoplenie/radiatory_otopleniya/radiatory_alyuminievye/',

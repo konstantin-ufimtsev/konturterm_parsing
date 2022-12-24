@@ -1,0 +1,5 @@
+host = 'localhost'
+user = 'postgres'
+password = '1234'
+database = 'radiators'
+port = '5432'
